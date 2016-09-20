@@ -87,6 +87,7 @@ class Crawler(object):
                 requests.exceptions.ReadTimeout,
                 requests.exceptions.TooManyRedirects,
                 requests.packages.urllib3.exceptions.LocationValueError,
+                UnicodeError,
             ) as err:
                 self.log("%s on %s" % (err, url))
                 continue
