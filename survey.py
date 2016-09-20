@@ -5,7 +5,6 @@ import csv
 import re
 
 from datetime import datetime
-from html.parser import HTMLParseError
 from multiprocessing import Lock, Process, Queue
 
 import requests
@@ -47,11 +46,7 @@ class Crawler(object):
         return response.text
 
     def meta_redirect(self, html, url):
-        try:
-            soup = BeautifulSoup(html, 'html.parser')
-        except HTMLParseError:
-            self.log("Failed parsing html for %s" % url)
-            return None
+        soup = BeautifulSoup(html, 'lxml')
 
         result = soup.find("meta", attrs={
             "http-equiv": re.compile("Refresh", re.IGNORECASE)
