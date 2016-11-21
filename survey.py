@@ -109,10 +109,10 @@ class Crawler(object):
         html = self.get_html(hostname)
         if html:
             if self.regex.search(html):
-                self.log("%s!!!%s Got a match on %s" % (
-                    colorama.Fore.GREEN + colorama.Style.BRIGHT,
-                    colorama.Style.RESET_ALL,
+                self.log("%s!!! Got a match on %s%s" % (
+                    colorama.Back.GREEN + colorama.Fore.BLACK,
                     hostname,
+                    colorama.Style.RESET_ALL,
                 ))
         else:
             self.log("%sXXX%s Failed to fetch %s" % (
