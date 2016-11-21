@@ -129,6 +129,8 @@ def parse_cli_args():
                         help="the regex string to search for")
     parser.add_argument("-d", "--debug", action="store_true", default=False,
                         help="enable debugging output")
+    parser.add_argument("-s", "--skip", type=int, default=0,
+                        help="skip this many hostnames from the start")
     parser.add_argument("-l", "--limit", type=int, default=None,
                         help="stop after this many hostnames")
     parser.add_argument("-n", dest='num_crawlers', type=int, default=20,
@@ -162,9 +164,15 @@ if __name__ == '__main__':
         reader = csv.reader(csvfile)
 
         for row in reader:
+            count = int(row[0])
+
+            if cli_args.skip >= count:
+                continue
+
             url_queue.put(row[1])
+
             if cli_args.limit:
-                if int(row[0]) == cli_args.limit:
+                if count - cli_args.skip == cli_args.limit:
                     break
 
     crawlers = []
