@@ -127,6 +127,8 @@ def parse_cli_args():
 
     parser.add_argument("search_regex",
                         help="the regex string to search for")
+    parser.add_argument("-d", "--debug", action="store_true", default=False,
+                        help="enable debugging output")
     parser.add_argument("-l", "--limit", type=int, default=None,
                         help="stop after this many hostnames")
     parser.add_argument("-n", dest='num_crawlers', type=int, default=20,
@@ -140,6 +142,18 @@ if __name__ == '__main__':
     colorama.init()
 
     cli_args = parse_cli_args()
+
+    if cli_args.debug:
+        import logging
+        import http
+
+        http.client.HTTPConnection.debuglevel = 1
+
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.DEBUG)
+        requests_log = logging.getLogger("requests.packages.urllib3")
+        requests_log.setLevel(logging.DEBUG)
+        requests_log.propagate = True
 
     log = Logger().log
     url_queue = Queue()
