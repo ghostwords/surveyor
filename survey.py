@@ -15,6 +15,7 @@ import re
 from datetime import datetime
 from multiprocessing import Lock, Process, Queue
 
+import colorama
 import requests
 
 from bs4 import BeautifulSoup
@@ -108,9 +109,17 @@ class Crawler(object):
         html = self.get_html(hostname)
         if html:
             if self.regex.search(html):
-                self.log("!!! Got a match on %s" % hostname)
+                self.log("%s!!!%s Got a match on %s" % (
+                    colorama.Fore.GREEN + colorama.Style.BRIGHT,
+                    colorama.Style.RESET_ALL,
+                    hostname,
+                ))
         else:
-            self.log("XXX Failed to fetch %s" % hostname)
+            self.log("%sXXX%s Failed to fetch %s" % (
+                colorama.Fore.RED + colorama.Style.BRIGHT,
+                colorama.Style.RESET_ALL,
+                hostname,
+            ))
 
 
 def parse_cli_args():
@@ -128,6 +137,8 @@ def parse_cli_args():
 
 
 if __name__ == '__main__':
+    colorama.init()
+
     cli_args = parse_cli_args()
 
     log = Logger().log
