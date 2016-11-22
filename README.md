@@ -1,4 +1,13 @@
+# Surveyor
+
+Like `grep` for website sources.
+
 Requires `top-1m.csv`. Get it from http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
+
+See http://stackoverflow.com/questions/4265748/search-in-html-source-with-google for alternatives.
+
+
+## Usage
 
 ```
 usage: survey.py [-h] [-Q] [-s SKIP] [-l LIMIT] [-n NUM_PROCESSES]
@@ -20,3 +29,8 @@ optional arguments:
                         before timing out (default: 3.4)
   -d, --debug           enable debugging output
 ```
+
+
+## Code license
+
+Mozilla Public License Version 2.0
