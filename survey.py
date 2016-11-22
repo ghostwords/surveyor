@@ -125,8 +125,10 @@ class Crawler(object):
 def parse_cli_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("search_regex",
-                        help="the regex string to search for")
+    parser.add_argument("pattern", metavar="PATTERN",
+                        help="the regex pattern to search for")
+    parser.add_argument("-Q", "--literal", action="store_true", default=False,
+                        help="treat PATTERN as literal string, not a regex")
     parser.add_argument("-d", "--debug", action="store_true", default=False,
                         help="enable debugging output")
     parser.add_argument("-s", "--skip", type=int, default=0,
@@ -144,6 +146,11 @@ if __name__ == '__main__':
     colorama.init()
 
     cli_args = parse_cli_args()
+
+    pattern = cli_args.pattern
+    if cli_args.literal:
+        pattern = re.escape(cli_args.pattern)
+    regex = re.compile(pattern, re.IGNORECASE)
 
     if cli_args.debug:
         import logging
@@ -181,7 +188,7 @@ if __name__ == '__main__':
             target=Crawler,
             kwargs={
                 'log': log,
-                'regex': re.compile(cli_args.search_regex, re.IGNORECASE),
+                'regex': regex,
                 'timeout': 10,
                 'url_queue': url_queue,
             }
