@@ -72,36 +72,32 @@ class Crawler(object):
     def get_html(self, hostname):
         html = None
 
-        for proto in ('http', 'https'):
-            url = proto + '://' + hostname
+        url = 'http://' + hostname
 
-            try:
+        try:
+            html = self.fetch(url)
+
+            # check for META redirects
+            redirect_url = self.meta_redirect(html, url)
+            if redirect_url:
+                # handle relative URLs
+                if redirect_url[0] == '/':
+                    redirect_url = url + redirect_url
+                url = redirect_url
                 html = self.fetch(url)
 
-                # check for META redirects
-                redirect_url = self.meta_redirect(html, url)
-                if redirect_url:
-                    # handle relative URLs
-                    if redirect_url[0] == '/':
-                        redirect_url = url + redirect_url
-                    url = redirect_url
-                    html = self.fetch(url)
-
-            except (
-                requests.exceptions.ChunkedEncodingError,
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ContentDecodingError,
-                requests.exceptions.HTTPError,
-                requests.exceptions.InvalidSchema,
-                requests.exceptions.ReadTimeout,
-                requests.exceptions.TooManyRedirects,
-                requests.packages.urllib3.exceptions.LocationValueError,
-                UnicodeError,
-            ) as err:
-                self.log("%s on %s" % (err, url))
-                continue
-            else:
-                break
+        except (
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ContentDecodingError,
+            requests.exceptions.HTTPError,
+            requests.exceptions.InvalidSchema,
+            requests.exceptions.ReadTimeout,
+            requests.exceptions.TooManyRedirects,
+            requests.packages.urllib3.exceptions.LocationValueError,
+            UnicodeError,
+        ) as err:
+            self.log("%s on %s" % (err, url))
 
         return html
 
