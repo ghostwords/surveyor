@@ -188,8 +188,13 @@ def print_summary(log, crawl_timedelta, result_queue):
         num_urls / crawl_timedelta.total_seconds() * 60,
     ))
     log("Got %s matches and %s failures" % (num_matches, num_errors))
-    log("Match rate: %.1f%%; failure rate: %.1f%%" % (
-        num_matches / (num_urls - num_errors) * 100,
+    match_rate = (
+        "%.1f%%" % (num_matches / (num_urls - num_errors) * 100)
+        if num_urls > num_errors
+        else "n/a"
+    )
+    log("Match rate: %s; failure rate: %.1f%%" % (
+        match_rate,
         num_errors / num_urls * 100,
     ))
 
