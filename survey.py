@@ -139,8 +139,8 @@ def parse_cli_args():
         help="stop after this many hostnames")
 
     parser.add_argument(
-        "-n", dest='num_crawlers', type=int, default=20, help=(
-            "how many processes to use in parallel (default: %(default)s)"))
+        "-n", dest='num_processes', type=int, default=20,
+        help="use this many processes in parallel (default: %(default)s)")
 
     parser.add_argument(
         "-t", "--timeout", metavar='SECONDS', type=float, default=3.4, help=(
@@ -196,7 +196,7 @@ if __name__ == '__main__':
                     break
 
     crawlers = []
-    for i in range(cli_args.num_crawlers):
+    for i in range(cli_args.num_processes):
         crawler = Process(
             target=Crawler,
             kwargs={
