@@ -41,8 +41,11 @@ class Crawler(object):
         self.result_queue = kwargs['result_queue']
 
         while not self.url_queue.empty():
-            hostname = self.url_queue.get()
-            self.check(hostname)
+            try:
+                hostname = self.url_queue.get()
+                self.check(hostname)
+            except KeyboardInterrupt:
+                pass
 
     def fetch(self, url):
         #self.log("Fetching %s ..." % url)
@@ -265,10 +268,17 @@ if __name__ == '__main__':
         crawler.start()
         crawlers.append(crawler)
 
-    # wait for all processes to finish
-    for crawler in crawlers:
-        crawler.join()
-
-    print_summary(log, datetime.now() - start_time, result_queue)
+    try:
+        # wait for all processes to finish
+        for crawler in crawlers:
+            crawler.join()
+    except KeyboardInterrupt:
+        # handle early termination
+        for crawler in crawlers:
+            crawler.terminate()
+            crawler.join()
+        print()
+    finally:
+        print_summary(log, datetime.now() - start_time, result_queue)
 
     log("All done.")
