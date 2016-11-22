@@ -18,6 +18,7 @@ from multiprocessing import Lock, Process, Queue
 import colorama
 import requests
 
+from babel.dates import format_timedelta
 from bs4 import BeautifulSoup
 
 
@@ -37,12 +38,14 @@ class Crawler(object):
         self.regex = kwargs['regex']
         self.timeout = kwargs['timeout']
         self.url_queue = kwargs['url_queue']
+        self.result_queue = kwargs['result_queue']
 
         while not self.url_queue.empty():
             hostname = self.url_queue.get()
             self.check(hostname)
 
     def fetch(self, url):
+        #self.log("Fetching %s ..." % url)
         headers = {
             'User-Agent': (
                 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) '
@@ -104,20 +107,60 @@ class Crawler(object):
         return html
 
     def check(self, hostname):
+        result = {
+            'match': False,
+            'error': False,
+        }
+
         html = self.get_html(hostname)
+
         if html:
             if self.regex.search(html):
+                result['match'] = True
                 self.log("%s!!! Got a match on %s%s" % (
                     colorama.Back.GREEN + colorama.Fore.BLACK,
                     hostname,
                     colorama.Style.RESET_ALL,
                 ))
         else:
+            result['error'] = True
             self.log("%sXXX%s Failed to fetch %s" % (
                 colorama.Fore.RED + colorama.Style.BRIGHT,
                 colorama.Style.RESET_ALL,
                 hostname,
             ))
+
+        self.result_queue.put(result)
+
+
+def print_summary(log, crawl_timedelta, result_queue):
+    num_urls = 0
+    num_matches = 0
+    num_errors = 0
+
+    while True:
+        result = result_queue.get()
+
+        num_urls += 1
+
+        if result['match']:
+            num_matches += 1
+        elif result['error']:
+            num_errors += 1
+
+        if result_queue.empty():
+            break
+
+    log("Searched %s URLs in %s (%.1f URLs/min)" % (
+        num_urls,
+        format_timedelta(crawl_timedelta),
+        num_urls / crawl_timedelta.total_seconds() * 60,
+    ))
+    log("Got %s matches and %s failures" % (num_matches, num_errors))
+    log("Match rate: %.1f%%; failure rate: %.1f%%" % (
+        num_matches / (num_urls - num_errors) * 100,
+        num_errors / num_urls * 100,
+    ))
 
 
 def parse_cli_args():
@@ -179,6 +222,7 @@ if __name__ == '__main__':
 
     log = Logger().log
     url_queue = Queue()
+    result_queue = Queue()
 
     with open('top-1m.csv') as csvfile:
         reader = csv.reader(csvfile)
@@ -195,6 +239,8 @@ if __name__ == '__main__':
                 if count - cli_args.skip == cli_args.limit:
                     break
 
+    start_time = datetime.now()
+
     crawlers = []
     for i in range(cli_args.num_processes):
         crawler = Process(
@@ -207,6 +253,7 @@ if __name__ == '__main__':
                     cli_args.timeout # read timeout
                 ),
                 'url_queue': url_queue,
+                'result_queue': result_queue,
             }
         )
         crawler.start()
@@ -215,3 +262,7 @@ if __name__ == '__main__':
     # wait for all processes to finish
     for crawler in crawlers:
         crawler.join()
+
+    print_summary(log, datetime.now() - start_time, result_queue)
+
+    log("All done.")
