@@ -133,6 +133,34 @@ class Crawler(object):
         self.result_queue.put(result)
 
 
+def enable_debug_output():
+    import logging
+    import http
+
+    http.client.HTTPConnection.debuglevel = 1
+
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
+
+def populate_url_queue(url_queue, skip, limit):
+    with open('top-1m.csv') as csvfile:
+        for row in csv.reader(csvfile):
+            count = int(row[0])
+
+            if skip >= count:
+                continue
+
+            url_queue.put(row[1])
+
+            if limit:
+                if count - skip == limit:
+                    break
+
+
 def print_summary(log, crawl_timedelta, result_queue):
     num_urls = 0
     num_matches = 0
@@ -209,35 +237,13 @@ if __name__ == '__main__':
     regex = re.compile(pattern, re.IGNORECASE)
 
     if cli_args.debug:
-        import logging
-        import http
-
-        http.client.HTTPConnection.debuglevel = 1
-
-        logging.basicConfig()
-        logging.getLogger().setLevel(logging.DEBUG)
-        requests_log = logging.getLogger("requests.packages.urllib3")
-        requests_log.setLevel(logging.DEBUG)
-        requests_log.propagate = True
+        enable_debug_output()
 
     log = Logger().log
     url_queue = Queue()
     result_queue = Queue()
 
-    with open('top-1m.csv') as csvfile:
-        reader = csv.reader(csvfile)
-
-        for row in reader:
-            count = int(row[0])
-
-            if cli_args.skip >= count:
-                continue
-
-            url_queue.put(row[1])
-
-            if cli_args.limit:
-                if count - cli_args.skip == cli_args.limit:
-                    break
+    populate_url_queue(url_queue, cli_args.skip, cli_args.limit)
 
     start_time = datetime.now()
 
