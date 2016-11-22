@@ -121,19 +121,29 @@ class Crawler(object):
 def parse_cli_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("pattern", metavar="PATTERN",
-                        help="the regex pattern to search for")
-    parser.add_argument("-Q", "--literal", action="store_true", default=False,
-                        help="treat PATTERN as literal string, not a regex")
-    parser.add_argument("-d", "--debug", action="store_true", default=False,
-                        help="enable debugging output")
-    parser.add_argument("-s", "--skip", type=int, default=0,
-                        help="skip this many hostnames from the start")
-    parser.add_argument("-l", "--limit", type=int, default=None,
-                        help="stop after this many hostnames")
-    parser.add_argument("-n", dest='num_crawlers', type=int, default=20,
-                        help="how many processes to use in parallel "
-                        "(default: %(default)s)")
+    parser.add_argument(
+        "pattern", metavar="PATTERN", help="the regex pattern to search for")
+
+    parser.add_argument(
+        "-Q", "--literal", action="store_true", default=False,
+        help="treat PATTERN as literal string, not a regex")
+
+    parser.add_argument(
+        "-d", "--debug", action="store_true", default=False,
+        help="enable debugging output")
+
+    parser.add_argument(
+        "-s", "--skip", type=int, default=0,
+        help="skip this many hostnames from the start")
+
+    parser.add_argument(
+        "-l", "--limit", type=int, default=None,
+        help="stop after this many hostnames")
+
+    parser.add_argument(
+        "-n", dest='num_crawlers', type=int, default=20, help=(
+            "how many processes to use in parallel (default: %(default)s)"))
+
 
     return parser.parse_args()
 
