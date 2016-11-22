@@ -85,10 +85,12 @@ class Crawler(object):
                     redirect_url = url + redirect_url
                 url = redirect_url
                 html = self.fetch(url)
-
+        except (
+            requests.exceptions.ConnectionError,
+        ):
+            pass
         except (
             requests.exceptions.ChunkedEncodingError,
-            requests.exceptions.ConnectionError,
             requests.exceptions.ContentDecodingError,
             requests.exceptions.HTTPError,
             requests.exceptions.InvalidSchema,
