@@ -129,10 +129,6 @@ def parse_cli_args():
         help="treat PATTERN as literal string, not a regex")
 
     parser.add_argument(
-        "-d", "--debug", action="store_true", default=False,
-        help="enable debugging output")
-
-    parser.add_argument(
         "-s", "--skip", type=int, default=0,
         help="skip this many hostnames from the start")
 
@@ -149,6 +145,10 @@ def parse_cli_args():
             "wait this many seconds to connect "
             "and again to read before timing out "
             "(default: %(default)s)"))
+
+    parser.add_argument(
+        "-d", "--debug", action="store_true", default=False,
+        help="enable debugging output")
 
     return parser.parse_args()
 
