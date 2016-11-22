@@ -144,6 +144,11 @@ def parse_cli_args():
         "-n", dest='num_crawlers', type=int, default=20, help=(
             "how many processes to use in parallel (default: %(default)s)"))
 
+    parser.add_argument(
+        "-t", "--timeout", metavar='SECONDS', type=float, default=3.4, help=(
+            "wait this many seconds to connect "
+            "and again to read before timing out "
+            "(default: %(default)s)"))
 
     return parser.parse_args()
 
@@ -195,7 +200,10 @@ if __name__ == '__main__':
             kwargs={
                 'log': log,
                 'regex': regex,
-                'timeout': 10,
+                'timeout': (
+                    cli_args.timeout, # connect timeout
+                    cli_args.timeout # read timeout
+                ),
                 'url_queue': url_queue,
             }
         )
