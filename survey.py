@@ -14,6 +14,7 @@ import re
 
 from datetime import datetime
 from multiprocessing import Lock, Process, Queue
+from time import sleep
 
 import colorama
 import requests
@@ -136,6 +137,38 @@ class Crawler(object):
         self.result_queue.put(result)
 
 
+def collect(log, result_queue, start_time):
+    counts = {
+        'num_urls': 0,
+        'num_matches': 0,
+        'num_errors': 0,
+    }
+
+    while True:
+        try:
+            if result_queue.empty():
+                sleep(0.01)
+                continue
+
+            result = result_queue.get()
+
+            # time to stop collecting
+            if result is None:
+                break
+
+            counts['num_urls'] += 1
+
+            if result['match']:
+                counts['num_matches'] += 1
+            elif result['error']:
+                counts['num_errors'] += 1
+
+        except KeyboardInterrupt:
+            pass
+
+    print_summary(log, datetime.now() - start_time, **counts)
+
+
 def enable_debug_output():
     import logging
     import http
@@ -164,24 +197,7 @@ def populate_url_queue(url_queue, skip, limit):
                     break
 
 
-def print_summary(log, crawl_timedelta, result_queue):
-    num_urls = 0
-    num_matches = 0
-    num_errors = 0
-
-    while True:
-        result = result_queue.get()
-
-        num_urls += 1
-
-        if result['match']:
-            num_matches += 1
-        elif result['error']:
-            num_errors += 1
-
-        if result_queue.empty():
-            break
-
+def print_summary(log, crawl_timedelta, num_urls, num_matches, num_errors):
     log("Searched %s URLs in %s (%.1f URLs/min)" % (
         num_urls,
         format_timedelta(crawl_timedelta),
@@ -273,6 +289,9 @@ if __name__ == '__main__':
         crawler.start()
         crawlers.append(crawler)
 
+    # start the collector process
+    Process(target=collect, args=(log, result_queue, start_time)).start()
+
     try:
         # wait for all processes to finish
         for crawler in crawlers:
@@ -284,6 +303,7 @@ if __name__ == '__main__':
             crawler.join()
         print()
     finally:
-        print_summary(log, datetime.now() - start_time, result_queue)
+        # tell collector we are done
+        result_queue.put(None)
 
     log("All done.")
